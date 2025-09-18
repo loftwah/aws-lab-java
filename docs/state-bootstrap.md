@@ -24,4 +24,4 @@ The bucket is shared across all environments. Only the bootstrap stack keeps a l
    terraform -chdir=infrastructure/terraform/stacks/development/core-networking init -migrate-state
    ```
 
-> **Note:** No DynamoDB locking table is created by design. Coordinate `terraform apply` runs to avoid concurrent writers, or add a table later if contention becomes a risk.
+> **Note:** Terraform uses native S3 state locking (`use_lockfile = true`). No DynamoDB table is required. Ensure the state bucket has versioning enabled (it is, via the `state_bucket` module).

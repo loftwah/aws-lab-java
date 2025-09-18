@@ -9,7 +9,7 @@
   - domain files (e.g. `networking.tf`, `rds.tf`, `ecs.tf`) wiring modules for that concern
   - `variables.tf` / `locals.tf` – stack-scoped inputs and tagging defaults
 - Bootstrap the shared state bucket via `infrastructure/terraform/state-bootstrap` before touching other stacks. This directory keeps its own local state because it only manages the remote backend (S3 bucket).
-- State objects live in S3 (`aws-lab-java-terraform-state`) with versioning/encryption enabled; DynamoDB locking intentionally omitted per lab scope.
+- State objects live in S3 (`aws-lab-java-terraform-state`) with versioning/encryption enabled; native S3 locking (`use_lockfile = true`) is enabled instead of DynamoDB.
 - Each environment is partitioned into stacks (e.g. `core-networking`, `database`, `compute-ecs`) so you can plan/apply them independently without dragging the entire environment.
 - Downstream stacks pull networking outputs via `terraform_remote_state` pointing at `development/core-networking.tfstate`.
 

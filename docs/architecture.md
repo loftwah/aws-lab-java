@@ -4,7 +4,7 @@
 
 - **AWS region:** `ap-southeast-2`
 - **AWS profile:** `devops-sandbox`
-- **Infrastructure as code:** Terraform ≥1.13 with S3-backed state files (no DynamoDB locking)
+- **Infrastructure as code:** Terraform ≥1.13 with S3-backed state and native S3 locking (no DynamoDB table)
 - **Configuration management:** Ansible for EC2 bootstrap (Docker, JVM, app)
 - **Source-of-truth:** Mono-repo (`aws-lab-java`) containing app, IaC, automation, docs
 
