@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - Java 21 (for editing/running the service outside Docker)
-- Gradle 8.7+ (installed via [`mise`](https://mise.jdx.dev/) or your preferred package manager)
+- Gradle 8.7+ (`brew install gradle` on macOS, or install via your preferred package manager)
 - Docker with BuildKit / buildx enabled
 
 ## Run locally

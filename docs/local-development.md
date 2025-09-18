@@ -6,7 +6,8 @@ These steps assume an Apple Silicon Mac (M-series including M4) running macOS So
 
 - [mise](https://mise.jdx.dev/) (tool version manager)
 - Docker Desktop (or an alternative Docker Engine) with BuildKit enabled
-- Homebrew (optional, used here for installing mise and Docker)
+- Homebrew (used for installing tooling below)
+- Gradle 8.7+ (`brew install gradle`)
 - [`jq`](https://stedolan.github.io/jq/) (used by the smoke-test script)
 
 Install the base tooling:
@@ -17,6 +18,9 @@ brew install mise
 
 # Docker Desktop (optional if you already have it)
 brew install --cask docker
+
+# Gradle CLI for local builds
+brew install gradle
 ```
 
 Launch Docker Desktop at least once so the daemon is available for local builds.
@@ -43,7 +47,7 @@ This ensures:
 
 - **Java 21** is available for VS Code/Cursor Java tooling and local Gradle runs.
 - **Terraform 1.13.0** matches the version required by the infrastructure code.
-- **Gradle 8.7** mirrors the version used by the Docker build image, keeping wrapper behaviour consistent.
+- **Gradle 8.7** mirrors the version used by the Docker build image, keeping wrapper behaviour consistent. If you installed Gradle via Homebrew, make sure it stays on the pinned version.
 
 > **Tip:** Add `eval "$(mise activate zsh)"` to your shell profile (e.g. `~/.zshrc`) so the tools are on your PATH in new terminals.
 
