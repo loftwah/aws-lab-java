@@ -14,5 +14,6 @@ terraform {
     region  = "ap-southeast-2"
     profile = "devops-sandbox"
     encrypt = true
+    use_lockfile = true
   }
 }
