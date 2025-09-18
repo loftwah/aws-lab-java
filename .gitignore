@@ -1,0 +1,18 @@
+# Terraform state
+*.tfstate
+*.tfstate.backup
+*.tfstate.*
+terraform.tfstate.d/
+.terraform/
+**/.terraform/
+infrastructure/terraform/state/
+
+# Local tooling
+.idea/
+.vscode/
+.DS_Store
+
+
+# Application build artefacts
+application/.gradle/
+application/build/

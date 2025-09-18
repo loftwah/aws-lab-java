@@ -1,0 +1,43 @@
+app:
+  name: "AWS Lab Java Demo"
+  owner: "Dean Lofts"
+  deployment-target: ${DEPLOYMENT_TARGET:local}
+  auth-token: ${DEMO_AUTH_TOKEN:demo-token}
+  feature:
+    s3-metadata: ${FEATURE_S3_METADATA:false}
+
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: aws-lab-java-demo
+  main:
+    banner-mode: "off"
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/demo}
+    username: ${SPRING_DATASOURCE_USERNAME:demo}
+    password: ${SPRING_DATASOURCE_PASSWORD:demo}
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc.time_zone: UTC
+  flyway:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    root: INFO
+    com.deanlofts.awslabjava.application: INFO
