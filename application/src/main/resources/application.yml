@@ -28,6 +28,16 @@ spring:
   flyway:
     enabled: true
 
+aws:
+  region: ${AWS_REGION:}
+  secrets:
+    auth-token-secret-id: ${AWS_SECRETS_AUTH_TOKEN_SECRET_ID:}
+  parameter-store:
+    auth-token-parameter-name: ${AWS_SSM_AUTH_TOKEN_PARAMETER:}
+  s3:
+    bucket-name: ${AWS_S3_METADATA_BUCKET:}
+    prefix: ${AWS_S3_METADATA_PREFIX:widget-metadata/}
+
 management:
   endpoints:
     web:

@@ -7,6 +7,7 @@ These steps assume an Apple Silicon Mac (M-series including M4) running macOS So
 - [mise](https://mise.jdx.dev/) (tool version manager)
 - Docker Desktop (or an alternative Docker Engine) with BuildKit enabled
 - Homebrew (optional, used here for installing mise and Docker)
+- [`jq`](https://stedolan.github.io/jq/) (used by the smoke-test script)
 
 Install the base tooling:
 
@@ -56,20 +57,25 @@ gradle --version
 
 ## Running the demo application locally
 
-1. Build the container image (uses BuildKit/buildx under the hood):
+1. Build the container image (uses BuildKit/buildx under the hood). This catches compile errors before Compose rebuilds the image:
    ```bash
    ./scripts/build-demo.sh
    ```
 2. (Optional) Run the integration test suite locally:
    ```bash
-   (cd application && ./gradlew test)
+   (cd application && gradle test)
    ```
 3. Start the Docker Compose stack (PostgreSQL + demo app):
    ```bash
    docker compose up
    ```
 4. Visit `http://localhost:8080/` for the landing page and `http://localhost:8080/healthz` for the health endpoint.
-5. When calling the CRUD APIs, include the header `X-Demo-Auth: local-token`.
+5. When calling the CRUD APIs manually, include the header `X-Demo-Auth: local-token` (for example with `curl`). Secrets Manager/SSM integration is disabled locally unless you export the relevant `AWS_*` environment variables.
+6. In a separate terminal, run the automated smoke test (requires `curl` + `jq`):
+   ```bash
+   ./scripts/demo-smoke.sh
+   ```
+   The script waits for `/healthz`, performs CRUD operations using the `local-token`, and prints progress to the terminal.
 
 Stop the stack with `docker compose down`. Data persists in the `postgres-data` volume between runs.
 

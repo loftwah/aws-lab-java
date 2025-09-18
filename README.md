@@ -11,7 +11,7 @@
 - Default tags: Owner=Dean Lofts, Environment=<env>, Project/App=aws-lab-java, ManagedBy=Terraform
 - Deployment targets: ECS Fargate service and EC2 (Docker via Ansible) with shared RDS PostgreSQL
 - Terraform stacks under `infrastructure/terraform/stacks/<env>/<stack>` (e.g. `core-networking`) applied independently
-- Reference docs: `docs/architecture.md`, `docs/terraform-approach.md`, `docs/state-bootstrap.md`, `docs/demo-application.md`, `docs/local-development.md`
+- Reference docs: `docs/architecture.md`, `docs/terraform-approach.md`, `docs/state-bootstrap.md`, `docs/demo-application.md`, `docs/local-development.md`, `docs/testing-validation.md`
 
 ## Lab roadmap
 

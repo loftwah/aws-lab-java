@@ -18,9 +18,11 @@ import org.springframework.web.server.ResponseStatusException;
 public class WidgetService {
 
     private final WidgetRepository widgetRepository;
+    private final S3MetadataService s3MetadataService;
 
-    public WidgetService(WidgetRepository widgetRepository) {
+    public WidgetService(WidgetRepository widgetRepository, S3MetadataService s3MetadataService) {
         this.widgetRepository = widgetRepository;
+        this.s3MetadataService = s3MetadataService;
     }
 
     @Transactional(readOnly = true)
@@ -45,7 +47,9 @@ public class WidgetService {
         Instant now = Instant.now();
         entity.setCreatedAt(now);
         entity.setUpdatedAt(now);
-        return toDomain(widgetRepository.save(entity));
+        Widget saved = toDomain(widgetRepository.save(entity));
+        s3MetadataService.writeWidgetMetadata(saved);
+        return saved;
     }
 
     public Widget update(UUID id, WidgetRequest request) {
@@ -56,12 +60,15 @@ public class WidgetService {
         entity.setName(request.name());
         entity.setDescription(request.description());
         entity.setUpdatedAt(Instant.now());
-        return toDomain(widgetRepository.save(entity));
+        Widget updated = toDomain(widgetRepository.save(entity));
+        s3MetadataService.writeWidgetMetadata(updated);
+        return updated;
     }
 
     public void delete(UUID id) {
         try {
             widgetRepository.deleteById(id);
+            s3MetadataService.deleteWidgetMetadata(id.toString());
         } catch (EmptyResultDataAccessException ex) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Widget %s not found".formatted(id));
         }

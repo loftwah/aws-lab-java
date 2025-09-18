@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class WidgetServiceIntegrationTest {
 
     @Container
-    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:15")
+    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16")
             .withDatabaseName("demo")
             .withUsername("demo")
             .withPassword("demo");
