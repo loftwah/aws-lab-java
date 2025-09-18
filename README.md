@@ -1,5 +1,7 @@
 # AWS Labs - Java
 
+![AWS Labs - Java](open-graph-java-aws.jpg)
+
 > **Purpose:** A single, tool-agnostic **requirements catalogue** capturing all the work you can slice into labs, tickets, or milestones later. No sequencing, no commands, no tooling decisions made for you.
 
 ## Scope snapshot
