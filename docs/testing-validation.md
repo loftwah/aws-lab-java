@@ -67,6 +67,6 @@ When CodePipeline/CodeBuild are introduced, they will mimic the local workflow:
 ## Future enhancements
 
 - Add contract tests for `/healthz` and synthetic checks for CRUD endpoints.
-- Extend smoke testing to verify logging/metrics outputs once CloudWatch dashboards exist.
+- Extend smoke testing: assert `/healthz` dependency states, exercise widget GET/PUT flows, verify auth failures, and (when enabled) confirm S3 metadata writes.
 - Wire the smoke script into CI to validate against deployed endpoints post-release.
   EOF

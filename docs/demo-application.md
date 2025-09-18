@@ -99,6 +99,7 @@ All configuration ultimately binds through Spring Boot configuration properties.
 
 - **Secrets rotation**: add automated rotation support for the demo auth token and ensure the provider refreshes without manual intervention.
 - **S3 metadata enrichment**: expand metadata with object versioning and checksum validation once the bucket lifecycle policy is defined.
+- **Smoke test hardening**: extend `demo-smoke.sh` to cover widget `GET /{id}` + `PUT`, assert `/healthz` dependency statuses, and prove auth failures + S3 metadata paths.
 - **Distributed tracing**: propagate the generated trace ID via headers so future services can join the trace.
 
 Keep this document up to date as new AWS integrations land so anyone skimming the repo understands the shape of the demo service and how to operate it.
