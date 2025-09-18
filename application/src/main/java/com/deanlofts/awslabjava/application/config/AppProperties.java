@@ -1,68 +1,43 @@
 package com.deanlofts.awslabjava.application.config;
 
+import jakarta.validation.constraints.NotBlank;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.context.properties.bind.DefaultValue;
+import org.springframework.validation.annotation.Validated;
 
-@Configuration
-@ConfigurationPropertiesScan
+import lombok.Getter;
+
 @ConfigurationProperties(prefix = "app")
+@Validated
+@Getter
 public class AppProperties {
-    private String name;
-    private String owner;
-    private String deploymentTarget;
-    private String authToken;
-    private Feature feature = new Feature();
 
-    public String getName() {
-        return name;
+  @NotBlank private final String name;
+
+  @NotBlank private final String owner;
+
+  @NotBlank private final String deploymentTarget;
+
+  private final String authToken;
+
+  private final Feature feature;
+
+  public AppProperties(
+      String name, String owner, String deploymentTarget, String authToken, Feature feature) {
+    this.name = name;
+    this.owner = owner;
+    this.deploymentTarget = deploymentTarget;
+    this.authToken = authToken;
+    this.feature = feature != null ? feature : new Feature(false);
+  }
+
+  @Getter
+  public static class Feature {
+    private final boolean s3Metadata;
+
+    public Feature(@DefaultValue("false") boolean s3Metadata) {
+      this.s3Metadata = s3Metadata;
     }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getOwner() {
-        return owner;
-    }
-
-    public void setOwner(String owner) {
-        this.owner = owner;
-    }
-
-    public String getDeploymentTarget() {
-        return deploymentTarget;
-    }
-
-    public void setDeploymentTarget(String deploymentTarget) {
-        this.deploymentTarget = deploymentTarget;
-    }
-
-    public String getAuthToken() {
-        return authToken;
-    }
-
-    public void setAuthToken(String authToken) {
-        this.authToken = authToken;
-    }
-
-    public Feature getFeature() {
-        return feature;
-    }
-
-    public void setFeature(Feature feature) {
-        this.feature = feature;
-    }
-
-    public static class Feature {
-        private boolean s3Metadata;
-
-        public boolean isS3Metadata() {
-            return s3Metadata;
-        }
-
-        public void setS3Metadata(boolean s3Metadata) {
-            this.s3Metadata = s3Metadata;
-        }
-    }
+  }
 }

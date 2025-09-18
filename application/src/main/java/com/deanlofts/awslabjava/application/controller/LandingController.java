@@ -1,22 +1,23 @@
 package com.deanlofts.awslabjava.application.controller;
 
-import com.deanlofts.awslabjava.application.config.AppProperties;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.deanlofts.awslabjava.application.config.AppProperties;
+
 @RestController
 public class LandingController {
 
-    private final AppProperties appProperties;
+  private final AppProperties appProperties;
 
-    public LandingController(AppProperties appProperties) {
-        this.appProperties = appProperties;
-    }
+  public LandingController(AppProperties appProperties) {
+    this.appProperties = appProperties;
+  }
 
-    @GetMapping(path = "/", produces = MediaType.TEXT_HTML_VALUE)
-    public String index() {
-        return """
+  @GetMapping(path = "/", produces = MediaType.TEXT_HTML_VALUE)
+  public String index() {
+    return """
                 <html lang=\"en\">
                   <head>
                     <meta charset=\"utf-8\" />
@@ -40,7 +41,7 @@ public class LandingController {
                       <ul>
                         <li>Runtime owner: %s</li>
                         <li>Deployment target: %s</li>
-                        <li>Explore the health endpoint at <code>/healthz</code></li>
+                        <li>Explore the health endpoint at <code>/actuator/health</code></li>
                         <li>Interact with sample CRUD APIs under <code>/api/v1/widgets</code> (authenticated)</li>
                       </ul>
                     </section>
@@ -49,10 +50,11 @@ public class LandingController {
                     </footer>
                   </body>
                 </html>
-                """.formatted(
-                appProperties.getDeploymentTarget(),
-                appProperties.getOwner(),
-                appProperties.getDeploymentTarget(),
-                java.time.Year.now().getValue());
-    }
+                """
+        .formatted(
+            appProperties.getDeploymentTarget(),
+            appProperties.getOwner(),
+            appProperties.getDeploymentTarget(),
+            java.time.Year.now().getValue());
+  }
 }

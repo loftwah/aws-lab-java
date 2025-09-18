@@ -35,7 +35,9 @@ management:
         include: health,info
   endpoint:
     health:
-      show-details: always
+      show-details: when_authorized
+      show-components: when_authorized
+      roles: ACTUATOR
 
 logging:
   level:
