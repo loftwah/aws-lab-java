@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: Build and Test (Gradle)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: application
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.8'
+
+      - name: Spotless check
+        run: gradle spotlessCheck --no-daemon
+
+      - name: Build and test
+        run: gradle build --no-daemon
+
+      - name: Upload application jar
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-jar
+          if-no-files-found: warn
+          path: application/build/libs/app.jar
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          if-no-files-found: warn
+          path: |
+            application/build/reports/tests/test
+            application/build/test-results/test
+            application/build/reports/spotless
+
