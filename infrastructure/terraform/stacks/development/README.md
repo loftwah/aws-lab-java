@@ -10,6 +10,7 @@ terraform apply
 ```
 
 Current stacks:
+
 - `core-networking` – data sources and shared networking outputs.
 - `compute-ecs` – ECR repository (ECS service wiring later).
 - `compute-ec2` – placeholder for EC2/Ansible resources.
