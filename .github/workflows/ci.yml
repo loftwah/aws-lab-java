@@ -89,7 +89,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/aws-lab-java
+          images: ghcr.io/loftwah/aws-lab-java
           tags: |
             type=raw,value=latest
             type=sha,format=short
@@ -100,6 +100,7 @@ jobs:
           context: application
           file: application/Dockerfile
           push: true
+          platforms: linux/amd64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha

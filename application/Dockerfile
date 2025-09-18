@@ -1,11 +1,11 @@
 # syntax=docker/dockerfile:1.7
 
-FROM gradle:8.7-jdk21 AS build
+FROM public.ecr.aws/docker/library/gradle:8.8-jdk21 AS build
 WORKDIR /workspace
 COPY . .
 RUN gradle --no-daemon clean bootJar
 
-FROM eclipse-temurin:21-jre
+FROM public.ecr.aws/docker/library/eclipse-temurin:21-jre
 WORKDIR /app
 ENV JAVA_OPTS=""
 COPY --from=build /workspace/build/libs/app.jar app.jar
