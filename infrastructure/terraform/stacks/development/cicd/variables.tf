@@ -21,3 +21,21 @@ variable "additional_tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "connection_arn" {
+  description = "AWS CodeConnections (CodeStar Connections) ARN for GitHub"
+  type        = string
+  default     = "arn:aws:codeconnections:ap-southeast-2:139294524816:connection/9cb5e242-3d9c-4b3c-8fec-fd3fdea9e37e"
+}
+
+variable "repo_full_name" {
+  description = "GitHub owner/repo for source"
+  type        = string
+  default     = "loftwah/aws-lab-java"
+}
+
+variable "branch" {
+  description = "Git branch to build from"
+  type        = string
+  default     = "main"
+}
