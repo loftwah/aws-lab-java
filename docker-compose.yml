@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: demo
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  demo-app:
+    build:
+      context: ./application
+    image: aws-lab-java/demo-app:local
+    environment:
+      DEPLOYMENT_TARGET: compose
+      DEMO_AUTH_TOKEN: local-token
+      FEATURE_S3_METADATA: "false"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+
+volumes:
+  postgres-data: {}

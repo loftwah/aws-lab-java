@@ -1,0 +1,29 @@
+app:
+  name: "AWS Lab Java Demo"
+  owner: "Dean Lofts"
+  deployment-target: ${DEPLOYMENT_TARGET:local}
+  auth-token: ${DEMO_AUTH_TOKEN:demo-token}
+  feature:
+    s3-metadata: ${FEATURE_S3_METADATA:false}
+
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: aws-lab-java-demo
+  main:
+    banner-mode: "off"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+logging:
+  level:
+    root: INFO
+    com.deanlofts.awslabjava.application: INFO

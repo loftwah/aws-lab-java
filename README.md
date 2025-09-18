@@ -2,6 +2,19 @@
 
 > **Purpose:** A single, tool-agnostic **requirements catalogue** capturing all the work you can slice into labs, tickets, or milestones later. No sequencing, no commands, no tooling decisions made for you.
 
+## Scope snapshot
+
+- AWS region `ap-southeast-2` using profile `devops-sandbox`
+- Terraform 1.13.0 with S3-backed state (`aws-lab-java-terraform-state` bucket, no DynamoDB locking)
+- Default tags: Owner=Dean Lofts, Environment=<env>, Project/App=aws-lab-java, ManagedBy=Terraform
+- Deployment targets: ECS Fargate service and EC2 (Docker via Ansible) with shared RDS PostgreSQL
+- Terraform stacks under `infrastructure/terraform/stacks/<env>/<stack>` (e.g. `core-networking`) applied independently
+- Reference docs: `docs/architecture.md`, `docs/terraform-approach.md`, `docs/state-bootstrap.md`, `docs/demo-application.md`, `docs/local-development.md`
+
+## Lab roadmap
+
+The labs are sequenced in `docs/architecture.md` under _Next steps (labs sequencing)_. Use them to plan Jira tickets or workshop sessions.
+
 ---
 
 ## Governance & ways of working

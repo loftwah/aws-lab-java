@@ -1,0 +1,14 @@
+# Terraform working directories and state
+.terraform/
+**/.terraform/
+*.tfstate
+*.tfstate.*
+terraform.tfstate.d/
+infrastructure/terraform/state/
+
+# Build artefacts
+build/
+target/
+
+application/.gradle/
+application/build/
