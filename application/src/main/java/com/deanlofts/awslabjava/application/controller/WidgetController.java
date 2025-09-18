@@ -1,12 +1,10 @@
 package com.deanlofts.awslabjava.application.controller;
 
-import com.deanlofts.awslabjava.application.domain.Widget;
-import com.deanlofts.awslabjava.application.domain.WidgetRequest;
-import com.deanlofts.awslabjava.application.service.AuthService;
-import com.deanlofts.awslabjava.application.service.WidgetService;
-import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
+
+import jakarta.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,50 +18,56 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.deanlofts.awslabjava.application.domain.Widget;
+import com.deanlofts.awslabjava.application.domain.WidgetRequest;
+import com.deanlofts.awslabjava.application.service.AuthService;
+import com.deanlofts.awslabjava.application.service.WidgetService;
+
 @RestController
 @RequestMapping(path = "/api/v1/widgets", produces = MediaType.APPLICATION_JSON_VALUE)
 public class WidgetController {
 
-    private static final String AUTH_HEADER = "X-Demo-Auth";
+  private static final String AUTH_HEADER = "X-Demo-Auth";
 
-    private final WidgetService widgetService;
-    private final AuthService authService;
+  private final WidgetService widgetService;
+  private final AuthService authService;
 
-    public WidgetController(WidgetService widgetService, AuthService authService) {
-        this.widgetService = widgetService;
-        this.authService = authService;
-    }
+  public WidgetController(WidgetService widgetService, AuthService authService) {
+    this.widgetService = widgetService;
+    this.authService = authService;
+  }
 
-    @GetMapping
-    public List<Widget> list() {
-        return widgetService.findAll();
-    }
+  @GetMapping
+  public List<Widget> list() {
+    return widgetService.findAll();
+  }
 
-    @GetMapping("/{id}")
-    public Widget get(@PathVariable UUID id) {
-        return widgetService.findById(id);
-    }
+  @GetMapping("/{id}")
+  public Widget get(@PathVariable UUID id) {
+    return widgetService.findById(id);
+  }
 
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseStatus(HttpStatus.CREATED)
-    public Widget create(@RequestHeader(AUTH_HEADER) String token, @Valid @RequestBody WidgetRequest request) {
-        authService.assertAuthorized(token);
-        return widgetService.create(request);
-    }
+  @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.CREATED)
+  public Widget create(
+      @RequestHeader(AUTH_HEADER) String token, @Valid @RequestBody WidgetRequest request) {
+    authService.assertAuthorized(token);
+    return widgetService.create(request);
+  }
 
-    @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Widget update(
-            @RequestHeader(AUTH_HEADER) String token,
-            @PathVariable UUID id,
-            @Valid @RequestBody WidgetRequest request) {
-        authService.assertAuthorized(token);
-        return widgetService.update(id, request);
-    }
+  @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+  public Widget update(
+      @RequestHeader(AUTH_HEADER) String token,
+      @PathVariable UUID id,
+      @Valid @RequestBody WidgetRequest request) {
+    authService.assertAuthorized(token);
+    return widgetService.update(id, request);
+  }
 
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@RequestHeader(AUTH_HEADER) String token, @PathVariable UUID id) {
-        authService.assertAuthorized(token);
-        widgetService.delete(id);
-    }
+  @DeleteMapping("/{id}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void delete(@RequestHeader(AUTH_HEADER) String token, @PathVariable UUID id) {
+    authService.assertAuthorized(token);
+    widgetService.delete(id);
+  }
 }
