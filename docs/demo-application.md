@@ -6,7 +6,7 @@ The demo service showcases the AWS Lab Java platform by exercising key infrastru
 
 - Serve a branded landing page at `/` describing the lab, owner (Dean Lofts), and runtime mode (ECS vs EC2).
 - Expose `/healthz` returning readiness + dependency status (RDS connectivity, Secrets Manager token retrieval, S3 reachability).
-- Provide authenticated CRUD APIs for sample resources (`/api/v1/widgets`) backed by the shared PostgreSQL database. Mutating operations require the `X-Demo-Auth` header matching the Secrets Manager token.
+- Provide authenticated CRUD APIs for sample resources (`/api/v1/widgets`) backed by the shared PostgreSQL database (persisted via JPA/Flyway migrations). Mutating operations require the `X-Demo-Auth` header matching the Secrets Manager token.
 - Demonstrate optional AWS integrations (e.g. uploading metadata to S3) gated behind feature flags.
 - Emit structured logs with correlation IDs for every request and dependency call.
 
@@ -46,6 +46,7 @@ graph TD
 - `scripts/build-demo.sh` builds multi-arch Docker images on macOS/ARM using `docker buildx` (outputs `amd64` by default for ECS/EC2); supply `PUSH=true` to publish to ECR once credentials are configured.
 - Local build uses Maven/Gradle wrapper inside the repo; SBOM generation via `syft` (CodeBuild stage will mirror).
 - Image tags: `sha-<short>` and `latest`, matching the Terraform/ECR policy documented in `docs/terraform-approach.md`.
+- Integration tests run via Testcontainers-backed PostgreSQL to validate CRUD behaviour before publishing images.
 
 ## Ansible integration (EC2 track)
 

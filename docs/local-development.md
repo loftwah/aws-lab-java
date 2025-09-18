@@ -60,12 +60,16 @@ gradle --version
    ```bash
    ./scripts/build-demo.sh
    ```
-2. Start the Docker Compose stack (PostgreSQL + demo app):
+2. (Optional) Run the integration test suite locally:
+   ```bash
+   (cd application && ./gradlew test)
+   ```
+3. Start the Docker Compose stack (PostgreSQL + demo app):
    ```bash
    docker compose up
    ```
-3. Visit `http://localhost:8080/` for the landing page and `http://localhost:8080/healthz` for the health endpoint.
-4. When calling the CRUD APIs, include the header `X-Demo-Auth: local-token`.
+4. Visit `http://localhost:8080/` for the landing page and `http://localhost:8080/healthz` for the health endpoint.
+5. When calling the CRUD APIs, include the header `X-Demo-Auth: local-token`.
 
 Stop the stack with `docker compose down`. Data persists in the `postgres-data` volume between runs.
 

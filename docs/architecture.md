@@ -68,7 +68,7 @@
 ## CI/CD pipeline
 
 - CodePipeline orchestrating stages: Source (CodeCommit/GitHub), Build (CodeBuild), Test, Image Push (ECR), Deploy (ECS/EC2 targets).
-- CodeBuild assembles the Docker image, runs tests, and tags outputs with both the Git commit SHA (`sha-<short>`) and `latest`; ECR repos enforce image tag immutability.
+- CodeBuild assembles the Docker image, runs tests, and tags outputs with both the Git commit SHA (`sha-<short>`) and `latest`; Terraform provisions an immutable ECR repository that enforces this policy.
 - Pipelines use OIDC/IAM Roles for Service Accounts (no static keys) with dedicated Terraform-managed roles granting least-privilege pushes, deploys, and Terraform plan/apply.
 - Unit tests, static analysis, dependency scans, and container scans (e.g. Trivy) run inside CodeBuild; SBOMs and reports shipped as artefacts.
 - Promotion via manual approval to production-like env; same artefact promoted through stages using environment-specific Terraform apply jobs.

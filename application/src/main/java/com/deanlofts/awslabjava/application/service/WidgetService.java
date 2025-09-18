@@ -2,53 +2,72 @@ package com.deanlofts.awslabjava.application.service;
 
 import com.deanlofts.awslabjava.application.domain.Widget;
 import com.deanlofts.awslabjava.application.domain.WidgetRequest;
+import com.deanlofts.awslabjava.application.entity.WidgetEntity;
+import com.deanlofts.awslabjava.application.repository.WidgetRepository;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
+@Transactional
 public class WidgetService {
 
-    private final Map<UUID, Widget> store = new ConcurrentHashMap<>();
+    private final WidgetRepository widgetRepository;
 
-    public List<Widget> findAll() {
-        return new ArrayList<>(store.values());
+    public WidgetService(WidgetRepository widgetRepository) {
+        this.widgetRepository = widgetRepository;
     }
 
+    @Transactional(readOnly = true)
+    public List<Widget> findAll() {
+        return widgetRepository.findAll().stream().map(this::toDomain).toList();
+    }
+
+    @Transactional(readOnly = true)
     public Widget findById(UUID id) {
-        Widget widget = store.get(id);
-        if (widget == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Widget %s not found".formatted(id));
-        }
-        return widget;
+        return widgetRepository
+                .findById(id)
+                .map(this::toDomain)
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "Widget %s not found".formatted(id)));
     }
 
     public Widget create(WidgetRequest request) {
-        UUID id = UUID.randomUUID();
+        WidgetEntity entity = new WidgetEntity();
+        entity.setId(UUID.randomUUID());
+        entity.setName(request.name());
+        entity.setDescription(request.description());
         Instant now = Instant.now();
-        Widget widget = new Widget(id, request.name(), request.description(), now, now);
-        store.put(id, widget);
-        return widget;
+        entity.setCreatedAt(now);
+        entity.setUpdatedAt(now);
+        return toDomain(widgetRepository.save(entity));
     }
 
     public Widget update(UUID id, WidgetRequest request) {
-        Widget existing = findById(id);
-        Instant now = Instant.now();
-        Widget updated = new Widget(id, request.name(), request.description(), existing.createdAt(), now);
-        store.put(id, updated);
-        return updated;
+        WidgetEntity entity = widgetRepository
+                .findById(id)
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "Widget %s not found".formatted(id)));
+        entity.setName(request.name());
+        entity.setDescription(request.description());
+        entity.setUpdatedAt(Instant.now());
+        return toDomain(widgetRepository.save(entity));
     }
 
     public void delete(UUID id) {
-        Widget removed = store.remove(id);
-        if (removed == null) {
+        try {
+            widgetRepository.deleteById(id);
+        } catch (EmptyResultDataAccessException ex) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Widget %s not found".formatted(id));
         }
+    }
+
+    private Widget toDomain(WidgetEntity entity) {
+        return new Widget(entity.getId(), entity.getName(), entity.getDescription(), entity.getCreatedAt(), entity.getUpdatedAt());
     }
 }

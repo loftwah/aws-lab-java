@@ -27,6 +27,7 @@
   - `bastion` – hardened EC2 instance with Session Manager policies.
   - `observability` – log groups, metrics, alarms, dashboards.
   - `iam` – role/policy bundles for pipelines, runtime services, and humans.
+- `ecr-repository` module provisions immutable repositories consumed by the `compute-ecs` stack.
 - Modules will expose input variables for tags, environment, naming prefixes, and security constraints, keeping IAM policies and security groups close to the workloads they protect.
 
 ## Container image strategy
