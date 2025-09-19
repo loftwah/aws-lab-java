@@ -21,3 +21,15 @@ variable "additional_tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "ecs_service_domain_name" {
+  description = "Public DNS name served by the ECS application load balancer"
+  type        = string
+  default     = "java-demo-ecs.aws.deanlofts.xyz"
+}
+
+variable "hosted_zone_name" {
+  description = "Route53 hosted zone that owns the ECS service domain"
+  type        = string
+  default     = "aws.deanlofts.xyz"
+}

@@ -86,7 +86,7 @@ resource "aws_lb_target_group" "service" {
 }
 
 resource "aws_lb_listener_rule" "service" {
-  listener_arn = data.terraform_remote_state.ecs_alb.outputs.alb_listener_arn
+  listener_arn = data.terraform_remote_state.ecs_alb.outputs.alb_https_listener_arn
   priority     = 10
 
   action {
