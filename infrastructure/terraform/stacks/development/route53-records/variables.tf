@@ -33,3 +33,9 @@ variable "ecs_service_subdomain" {
   type        = string
   default     = "java-demo-ecs"
 }
+
+variable "ec2_service_subdomain" {
+  description = "Subdomain used for the EC2 demo service"
+  type        = string
+  default     = "java-demo-ec2"
+}

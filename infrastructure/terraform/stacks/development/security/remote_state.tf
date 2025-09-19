@@ -19,3 +19,14 @@ data "terraform_remote_state" "storage" {
     profile = var.aws_profile
   }
 }
+
+data "terraform_remote_state" "container_registry" {
+  backend = "s3"
+
+  config = {
+    bucket  = "aws-lab-java-terraform-state"
+    key     = "development/container-registry.tfstate"
+    region  = var.aws_region
+    profile = var.aws_profile
+  }
+}

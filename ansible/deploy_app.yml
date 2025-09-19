@@ -1,0 +1,61 @@
+---
+- name: Deploy app container from ECR
+  hosts: all
+  become: true
+  vars:
+    aws_region: ap-southeast-2
+    ecr_repo_url: REPLACE_WITH_ECR_URL
+    container_name: aws-lab-java-demo
+    host_port: 8080
+    env_vars:
+      SPRING_PROFILES_ACTIVE: aws
+      DEPLOYMENT_TARGET: ec2
+      AWS_REGION: ap-southeast-2
+      AWS_S3_METADATA_BUCKET: aws-lab-java-development-widget-metadata
+      AWS_S3_METADATA_PREFIX: widget-metadata/
+    ssm_params:
+      - name: DEMO_AUTH_TOKEN
+        parameter_name: /app/aws-lab-java/development/DEMO_AUTH_TOKEN
+  tasks:
+    - name: Install AWS CLI v2 dependencies
+      apt:
+        name:
+          - unzip
+          - curl
+        state: present
+        update_cache: yes
+
+    - name: Login to ECR
+      shell: |
+        aws ecr get-login-password --region {{ aws_region }} | \
+          docker login --username AWS --password-stdin {{ ecr_repo_url | regex_replace(':.*$', '') }}
+      args:
+        executable: /bin/bash
+
+    - name: Pull image
+      community.docker.docker_image:
+        name: "{{ ecr_repo_url }}:latest"
+        source: pull
+
+    - name: Fetch secrets from SSM Parameter Store
+      set_fact:
+        secret_env: "{{ dict(ssm_params | map(attribute='name') | list | zip(query('aws_ssm', ssm_params | map(attribute='parameter_name') | list, region=aws_region) | list)) }}"
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
+      collections:
+        - amazon.aws
+
+    - name: Merge env vars and secrets
+      set_fact:
+        merged_env: "{{ env_vars | combine(secret_env) }}"
+
+    - name: Ensure container is running
+      community.docker.docker_container:
+        name: "{{ container_name }}"
+        image: "{{ ecr_repo_url }}:latest"
+        state: started
+        restart_policy: always
+        published_ports:
+          - "{{ host_port }}:8080"
+        env: "{{ merged_env }}"
+
