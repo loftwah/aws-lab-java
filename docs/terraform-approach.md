@@ -10,7 +10,7 @@
   - `variables.tf` / `locals.tf` – stack-scoped inputs and tagging defaults
 - Bootstrap the shared state bucket via `infrastructure/terraform/state-bootstrap` before touching other stacks. This directory keeps its own local state because it only manages the remote backend (S3 bucket).
 - State objects live in S3 (`aws-lab-java-terraform-state`) with versioning/encryption enabled; native S3 locking (`use_lockfile = true`) is enabled instead of DynamoDB.
-- Each environment is partitioned into stacks (e.g. `core-networking`, `container-registry`, `compute-ecs`, `cicd`) so you can plan/apply them independently without dragging the entire environment. Shared prerequisites such as ECR live in their own stack so compute and pipeline layers can depend on them via remote state.
+- Each environment is partitioned into stacks (e.g. `core-networking`, `container-registry`, `storage`, `security`, `compute-ecs`, `cicd`) so you can plan/apply them independently without dragging the entire environment. Network-layer concerns (VPC, subnets, SGs) live in `core-networking`, while IAM/secrets sit in `security`; shared prerequisites (ECR, S3) have their own stacks so compute and pipeline layers depend on the right boundary via remote state.
 - Downstream stacks pull networking outputs via `terraform_remote_state` pointing at `development/core-networking.tfstate`.
 
 ## Module layout
@@ -19,7 +19,7 @@
   - `networking` – shared security groups, VPC lookups, VPC endpoints (S3 gateway, interface endpoints for SSM/ECR/CloudWatch).
   - `rds-postgres` – subnet groups, instances, parameter groups, Secrets Manager integration for shared database credentials.
   - `ecs-cluster` – ECS cluster, capacity providers, CloudWatch logging defaults.
-  - `ecs-service` – task definitions, services, autoscaling, target groups; consumes clusters from the dedicated module.
+  - `ecs-service` – task definitions, services, autoscaling, target groups; consumes clusters from the dedicated module and security outputs.
   - `ec2-service` – launch templates (Ubuntu LTS), autoscaling groups, IAM instance profiles, SSM associations for Ansible.
   - `alb` – application load balancers, listeners, target groups, WAF hooks, ACM certificates.
   - `route53-records` – DNS records (e.g. `java-demo-ecs.aws.deanlofts.xyz`).

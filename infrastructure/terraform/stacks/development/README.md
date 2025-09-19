@@ -11,9 +11,10 @@ terraform apply
 
 Current stacks:
 
-- `core-networking` – data sources plus the shared VPC, subnet catalogues, security groups (to be added), and networking outputs for downstream stacks.
+- `core-networking` – data sources plus the shared VPC, subnet catalogues, and network-layer security groups (ALB, ECS, EC2, database, bastion). Keeping SGs here gives every stack a single ingress/egress source of truth.
 - `container-registry` – ECR repositories and related policies.
-- `security` – **(to be added)** IAM roles, instance profiles, and shared policies that span compute stacks.
+- `security` – IAM roles, instance profiles, secrets, and shared policies that span compute stacks.
+- `storage` – Application data stores such as the widget-metadata S3 bucket and related policies.
 - `compute-ecs` – ECS cluster/services (depends on networking, container registry, security).
 - `compute-ec2` – EC2 launch templates, autoscaling, and Ansible bootstrap (depends on networking, security, container registry).
 - `database` – RDS/Secrets stack (depends on networking, security).

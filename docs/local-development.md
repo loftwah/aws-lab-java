@@ -62,12 +62,15 @@ gradle --version
 ## Running the demo application locally
 
 1. Build the container image (uses BuildKit/buildx under the hood). The script now discovers the target registry automatically by reading the Terraform outputs from `container-registry`, falls back to the active AWS CLI identity if needed, logs in with the AWS CLI, builds a `linux/amd64` image, and pushes both `latest` and `sha-<commit>` tags:
+
    ```bash
    ./scripts/build-demo.sh
    ```
+
    - Requires the `devops-sandbox` AWS profile to be configured locally. The script pins the profile and region (`ap-southeast-2`) internally and runs `aws ecr get-login-password` automatically; set `AUTO_LOGIN=false` if you want to log in yourself.
    - Prevent the push with `PUSH=false`, or override the detected registry via `IMAGE_NAME=<registry>/<repo>` if you really need to.
    - Change the build architecture with `PLATFORM=<os/arch>` (defaults to `linux/amd64`).
+
 2. (Optional) Run the integration test suite locally:
    ```bash
    (cd application && gradle test)
