@@ -25,7 +25,8 @@ class S3HealthIndicatorTest {
   @Test
   void reportsUpWhenFeatureDisabled() {
     AppProperties.Feature feature = new AppProperties.Feature(false);
-    AppProperties appProperties = new AppProperties("demo", "tester", "test", "token", feature, null);
+    AppProperties appProperties =
+        new AppProperties("demo", "tester", "test", "token", feature, null);
     AwsProperties awsProperties = new AwsProperties(null, null, null, null);
 
     S3HealthIndicator indicator =
@@ -38,7 +39,8 @@ class S3HealthIndicatorTest {
   @Test
   void reportsDownWhenBucketMissing() {
     AppProperties.Feature feature = new AppProperties.Feature(true);
-    AppProperties appProperties = new AppProperties("demo", "tester", "test", "token", feature, null);
+    AppProperties appProperties =
+        new AppProperties("demo", "tester", "test", "token", feature, null);
     AwsProperties.S3 s3 = new AwsProperties.S3(null, "widget-metadata/");
     AwsProperties awsProperties = new AwsProperties(null, null, null, s3);
 
@@ -52,7 +54,8 @@ class S3HealthIndicatorTest {
   @Test
   void reportsDownWhenS3Throws() {
     AppProperties.Feature feature = new AppProperties.Feature(true);
-    AppProperties appProperties = new AppProperties("demo", "tester", "test", "token", feature, null);
+    AppProperties appProperties =
+        new AppProperties("demo", "tester", "test", "token", feature, null);
     AwsProperties.S3 s3 = new AwsProperties.S3("demo-bucket", "widget-metadata/");
     AwsProperties awsProperties = new AwsProperties(null, null, null, s3);
 

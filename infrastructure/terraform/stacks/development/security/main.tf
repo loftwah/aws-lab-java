@@ -66,6 +66,39 @@ resource "aws_iam_role" "ecs_task_execution" {
   })
 }
 
+data "aws_iam_policy_document" "ecs_task_execution" {
+  statement {
+    sid    = "ReadParameters"
+    effect = "Allow"
+    actions = [
+      "ssm:GetParameter",
+      "ssm:GetParameters",
+      "ssm:GetParametersByPath"
+    ]
+    resources = [
+      "arn:aws:ssm:${var.aws_region}:${local.account_id}:parameter${local.parameter_prefix}*"
+    ]
+  }
+
+  statement {
+    sid    = "ReadSecrets"
+    effect = "Allow"
+    actions = [
+      "secretsmanager:GetSecretValue",
+      "secretsmanager:DescribeSecret"
+    ]
+    resources = [
+      "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:${local.secrets_prefix}*"
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "ecs_task_execution" {
+  name   = "ecs-task-execution-secrets"
+  role   = aws_iam_role.ecs_task_execution.id
+  policy = data.aws_iam_policy_document.ecs_task_execution.json
+}
+
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_managed" {
   role       = aws_iam_role.ecs_task_execution.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
