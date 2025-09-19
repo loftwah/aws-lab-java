@@ -9,11 +9,11 @@ terraform {
   }
 
   backend "s3" {
-    bucket  = "aws-lab-java-terraform-state"
-    key     = "development/compute-ecs.tfstate"
-    region  = "ap-southeast-2"
-    profile = "devops-sandbox"
-    encrypt = true
+    bucket       = "aws-lab-java-terraform-state"
+    key          = "development/storage.tfstate"
+    region       = "ap-southeast-2"
+    profile      = "devops-sandbox"
+    encrypt      = true
     use_lockfile = true
   }
 }

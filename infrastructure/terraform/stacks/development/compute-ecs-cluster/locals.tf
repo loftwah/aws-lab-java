@@ -1,0 +1,13 @@
+locals {
+  base_tags = {
+    Owner       = "Dean Lofts"
+    Environment = var.environment
+    Project     = "aws-lab-java"
+    App         = "aws-lab-java"
+    ManagedBy   = "Terraform"
+  }
+
+  name_prefix  = "aws-lab-java-${var.environment}"
+  cluster_name = "${local.name_prefix}-ecs"
+  log_prefix   = "/aws/ecs/${local.cluster_name}"
+}

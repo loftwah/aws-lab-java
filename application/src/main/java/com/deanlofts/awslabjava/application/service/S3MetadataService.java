@@ -11,7 +11,7 @@ import org.springframework.util.StringUtils;
 
 import com.deanlofts.awslabjava.application.config.AppProperties;
 import com.deanlofts.awslabjava.application.config.AwsProperties;
-import com.deanlofts.awslabjava.application.domain.Widget;
+import com.deanlofts.awslabjava.application.dto.WidgetDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -45,7 +45,7 @@ public class S3MetadataService {
     return appProperties.getFeature().isS3Metadata();
   }
 
-  public void writeWidgetMetadata(Widget widget) {
+  public void writeWidgetMetadata(WidgetDto widget) {
     if (!isEnabled()) {
       return;
     }
@@ -107,5 +107,5 @@ public class S3MetadataService {
     }
   }
 
-  private record WidgetMetadata(Widget widget, Instant capturedAt, String deploymentTarget) {}
+  private record WidgetMetadata(WidgetDto widget, Instant capturedAt, String deploymentTarget) {}
 }

@@ -10,7 +10,8 @@
 - Terraform 1.13.x with S3-backed state and native S3 locking (`use_lockfile = true`)
 - Default tags: Owner=Dean Lofts, Environment=<env>, Project/App=aws-lab-java, ManagedBy=Terraform
 - Deployment targets: ECS Fargate service and EC2 (Docker via Ansible) with shared RDS PostgreSQL
-- Terraform stacks under `infrastructure/terraform/stacks/<env>/<stack>` (e.g. `core-networking`) applied independently
+- Terraform stacks under `infrastructure/terraform/stacks/<env>/<stack>` (e.g. `core-networking`) applied independently; ECR lives in `container-registry` so compute stacks can depend on it without owning it.
+- CI separation: GitHub Actions (`.github/workflows/ci.yml`) stays GitHub-only (build/test + GHCR); AWS lab automation uses CodePipeline/CodeBuild from Terraform `cicd` stacks.
 - Reference docs: `docs/architecture.md`, `docs/terraform-approach.md`, `docs/state-bootstrap.md`, `docs/demo-application.md`, `docs/local-development.md`, `docs/testing-validation.md`
 
 ## Lab roadmap

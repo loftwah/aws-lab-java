@@ -11,8 +11,8 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import com.deanlofts.awslabjava.application.domain.Widget;
 import com.deanlofts.awslabjava.application.domain.WidgetRequest;
+import com.deanlofts.awslabjava.application.dto.WidgetDto;
 import com.deanlofts.awslabjava.application.service.WidgetService;
 
 @SpringBootTest
@@ -39,17 +39,17 @@ class WidgetServiceIntegrationTest {
 
   @Test
   void createAndFetchWidget() {
-    Widget created =
+    WidgetDto created =
         widgetService.create(new WidgetRequest("test widget", "an integration test widget"));
 
-    Widget fetched = widgetService.findById(created.id());
+    WidgetDto fetched = widgetService.findById(created.id());
 
     assertThat(fetched.name()).isEqualTo("test widget");
     assertThat(widgetService.findAll()).hasSize(1);
 
     widgetService.update(created.id(), new WidgetRequest("updated", "updated description"));
 
-    Widget updated = widgetService.findById(created.id());
+    WidgetDto updated = widgetService.findById(created.id());
     assertThat(updated.name()).isEqualTo("updated");
 
     widgetService.delete(created.id());

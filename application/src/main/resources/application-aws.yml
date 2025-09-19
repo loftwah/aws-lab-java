@@ -1,0 +1,22 @@
+spring:
+  config:
+    activate:
+      on-profile: aws
+
+app:
+  deployment-target: ${DEPLOYMENT_TARGET:aws}
+  feature:
+    s3-metadata: true
+  cors:
+    allowed-origins: ${APP_AWS_ALLOWED_ORIGINS:https://java-demo-ecs.aws.deanlofts.xyz,https://java-demo-ec2.aws.deanlofts.xyz}
+  auth-token: ${DEMO_AUTH_TOKEN:}
+
+aws:
+  region: ${AWS_REGION:ap-southeast-2}
+  secrets:
+    auth-token-secret-id: ${AWS_SECRETS_AUTH_TOKEN_SECRET_ID:aws-lab-java/development/app-auth-token}
+  parameter-store:
+    auth-token-parameter-name: ${AWS_SSM_AUTH_TOKEN_PARAMETER:/app/aws-lab-java/development/DEMO_AUTH_TOKEN}
+  s3:
+    bucket-name: ${AWS_S3_METADATA_BUCKET:aws-lab-java-development-widget-metadata}
+    prefix: ${AWS_S3_METADATA_PREFIX:widget-metadata/}

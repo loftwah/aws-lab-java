@@ -5,16 +5,34 @@ import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
+import org.hibernate.annotations.UuidGenerator;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 @Entity
 @Table(name = "widgets")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class WidgetEntity {
 
-  @Id private UUID id;
+  @Id
+  @GeneratedValue
+  @UuidGenerator
+  @Column(updatable = false, nullable = false)
+  private UUID id;
 
   @Column(nullable = false)
   private String name;
@@ -22,22 +40,11 @@ public class WidgetEntity {
   @Column(nullable = false)
   private String description;
 
-  @Column(name = "created_at", nullable = false)
+  @Column(name = "created_at", nullable = false, updatable = false)
   private Instant createdAt;
 
   @Column(name = "updated_at", nullable = false)
   private Instant updatedAt;
-
-  public WidgetEntity() {}
-
-  public WidgetEntity(
-      UUID id, String name, String description, Instant createdAt, Instant updatedAt) {
-    this.id = id;
-    this.name = name;
-    this.description = description;
-    this.createdAt = createdAt;
-    this.updatedAt = updatedAt;
-  }
 
   @PrePersist
   void onCreate() {
@@ -51,45 +58,5 @@ public class WidgetEntity {
   @PreUpdate
   void onUpdate() {
     updatedAt = Instant.now();
-  }
-
-  public UUID getId() {
-    return id;
-  }
-
-  public void setId(UUID id) {
-    this.id = id;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public String getDescription() {
-    return description;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-  public Instant getCreatedAt() {
-    return createdAt;
-  }
-
-  public void setCreatedAt(Instant createdAt) {
-    this.createdAt = createdAt;
-  }
-
-  public Instant getUpdatedAt() {
-    return updatedAt;
-  }
-
-  public void setUpdatedAt(Instant updatedAt) {
-    this.updatedAt = updatedAt;
   }
 }

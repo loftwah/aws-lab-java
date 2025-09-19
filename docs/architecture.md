@@ -20,7 +20,7 @@
   - Public subnets: `subnet-0dd3f7f05ca1cb8d8`, `subnet-0b7e614d07d9f6030`
   - Private subnets: `subnet-03d29cbce89aeaf14`, `subnet-081e4da6ba7b7046e`
 - Terraform will import the VPC and subnets via `data` sources
-- Separate security groups per tier (ingress, app, database, bastion) with least-privilege rules
+- Separate security groups per tier (ingress, app, database, bastion) are managed in the `core-networking` stack so every workload consumes the same network perimeter, while IAM and secrets live in the dedicated `security` stack. Keeping these concerns split avoids coupling identity changes to network churn.
 - NAT gateway shared for private subnet egress; SSM traffic allowed without public IP
 - VPC endpoints: S3 gateway plus interface endpoints for SSM, SSM Messages, EC2 Messages, ECR (`api`/`dkr`), CloudWatch Logs, and Secrets Manager to keep private subnets off the public internet.
 
@@ -46,6 +46,7 @@
 - Detailed behaviour documented in `docs/demo-application.md`.
 - Single Java 21 Docker image serves both ECS and EC2 deployments; runtime identifies its platform via `DEPLOYMENT_TARGET` env var for logging/telemetry.
 - Shared RDS PostgreSQL database handles CRUD features for both services; schema changes coordinated via migration tooling baked into the build.
+- Widget metadata persists to a dedicated S3 bucket (`aws-lab-java-<env>-widget-metadata`) provisioned by the `storage` stack with versioning, encryption, and TLS-only access.
 - Service exposes CRUD APIs for core resources (TBD) with optional AWS integrations (e.g. S3 object metadata) gated behind authenticated endpoints.
 - Auth token (per environment) supplied via Secrets Manager/Parameter Store; middleware validates before touching sensitive operations.
 - Feature flags allow optional integrations (e.g. Redis) without impacting lab scope.
@@ -67,10 +68,11 @@
 
 ## CI/CD pipeline
 
-- CodePipeline orchestrating stages: Source (CodeCommit/GitHub), Build (CodeBuild), Test, Image Push (ECR), Deploy (ECS/EC2 targets).
+- **GitHub Actions (repository CI):** `.github/workflows/ci.yml` stays focused on pull-request and `main` branch checks plus publishing to GHCR for local/dev use. It never assumes AWS roles for the lab work and must remain untouched when iterating on the AWS pipeline story.
+- **AWS CodePipeline (lab automation):** Provisioned via `infrastructure/terraform/stacks/<env>/cicd`. The pipeline pulls source through the pre-authorised CodeStar connection, runs the `aws-lab-java-<env>-image-build` CodeBuild project, executes `buildspecs/build-image.yml`, and pushes to the `aws-lab-java-demo` ECR repository (provisioned by the `container-registry` stack) used by ECS/EC2 workloads.
 - CodeBuild assembles the Docker image, runs tests, and tags outputs with both the Git commit SHA (`sha-<short>`) and `latest`; Terraform provisions an immutable ECR repository that enforces this policy.
-- Pipelines use OIDC/IAM Roles for Service Accounts (no static keys) with dedicated Terraform-managed roles granting least-privilege pushes, deploys, and Terraform plan/apply.
-- Unit tests, static analysis, dependency scans, and container scans (e.g. Trivy) run inside CodeBuild; SBOMs and reports shipped as artefacts.
+- Pipelines use IAM service roles with least-privilege permissions (no static keys). CodePipeline can start CodeBuild and access the artifact bucket; CodeBuild can write logs, read/write artefacts, and push to ECR.
+- Unit tests, static analysis, dependency scans, and container scans (e.g. Trivy) run inside CodeBuild; SBOMs and reports ship as artefacts.
 - Promotion via manual approval to production-like env; same artefact promoted through stages using environment-specific Terraform apply jobs.
 
 ## Logging, metrics and observability
@@ -83,7 +85,8 @@
 
 ## Security & compliance (SOC 2 aware)
 
-- Centralised IAM module generating least-privilege roles/policies for pipelines, with workload-specific IAM/SG resources defined within their respective modules.
+- Centralised `security` stack creates IAM roles/policies for ECS tasks, EC2 instances, and shared secrets/parameters; workload stacks consume the exported ARNs.
+- Core networking stack defines shared security groups for ALB, ECS, EC2, database, and bastion tiers with least-privilege ingress rules.
 - KMS CMKs for secrets, EBS, and RDS storage encryption.
 - CloudTrail + Config enabled (future lab) for audit evidence retention.
 - Threat modelling tracked via STRIDE template; secure defaults baked into Terraform (no public DB, restricted ALB, TLS only).

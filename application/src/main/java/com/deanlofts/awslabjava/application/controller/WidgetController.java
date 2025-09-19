@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.deanlofts.awslabjava.application.domain.Widget;
 import com.deanlofts.awslabjava.application.domain.WidgetRequest;
+import com.deanlofts.awslabjava.application.dto.WidgetDto;
 import com.deanlofts.awslabjava.application.service.AuthService;
 import com.deanlofts.awslabjava.application.service.WidgetService;
 
@@ -38,25 +38,25 @@ public class WidgetController {
   }
 
   @GetMapping
-  public List<Widget> list() {
+  public List<WidgetDto> list() {
     return widgetService.findAll();
   }
 
   @GetMapping("/{id}")
-  public Widget get(@PathVariable UUID id) {
+  public WidgetDto get(@PathVariable UUID id) {
     return widgetService.findById(id);
   }
 
   @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.CREATED)
-  public Widget create(
+  public WidgetDto create(
       @RequestHeader(AUTH_HEADER) String token, @Valid @RequestBody WidgetRequest request) {
     authService.assertAuthorized(token);
     return widgetService.create(request);
   }
 
   @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-  public Widget update(
+  public WidgetDto update(
       @RequestHeader(AUTH_HEADER) String token,
       @PathVariable UUID id,
       @Valid @RequestBody WidgetRequest request) {
