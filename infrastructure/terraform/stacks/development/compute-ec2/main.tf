@@ -1,11 +1,6 @@
-data "aws_ami" "ubuntu" {
-  most_recent = true
-  owners      = ["099720109477"] # Canonical
-
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-noble-24.04-amd64-server-*"]
-  }
+data "aws_ssm_parameter" "ubuntu_ami" {
+  # Canonical's public SSM parameter for Ubuntu 24.04 LTS (amd64, hvm, ebs-gp3)
+  name = "/aws/service/canonical/ubuntu/server/24.04/stable/current/amd64/hvm/ebs-gp3/ami-id"
 }
 
 data "aws_region" "current" {}
@@ -22,7 +17,7 @@ locals {
 }
 
 resource "aws_instance" "app" {
-  ami                         = data.aws_ami.ubuntu.id
+  ami                         = data.aws_ssm_parameter.ubuntu_ami.value
   instance_type               = "t3.small"
   subnet_id                   = local.private_subnet_ids[0]
   iam_instance_profile        = data.terraform_remote_state.security.outputs.ec2_instance_profile_name
@@ -32,17 +27,37 @@ resource "aws_instance" "app" {
   user_data = <<-EOF
               #!/bin/bash
               set -euxo pipefail
-              # Install and start SSM Agent on Ubuntu
-              if command -v snap >/dev/null 2>&1; then
-                snap install amazon-ssm-agent --classic || true
-                systemctl enable --now snap.amazon-ssm-agent.amazon-ssm-agent.service || true
-              fi
-              if ! pgrep -x "amazon-ssm-agent" >/dev/null 2>&1; then
-                apt-get update -y || true
-                apt-get install -y snapd || true
-                snap install amazon-ssm-agent --classic || true
-                systemctl enable --now snap.amazon-ssm-agent.amazon-ssm-agent.service || true
-              fi
+              REGION="${data.aws_region.current.name}"
+              ARCH="amd64"
+              PKG_URL="https://s3.${data.aws_region.current.name}.amazonaws.com/amazon-ssm-${data.aws_region.current.name}/latest/debian_${ARCH}/amazon-ssm-agent.deb"
+              for i in $(seq 1 10); do
+                if curl -fSL -o /tmp/amazon-ssm-agent.deb "$PKG_URL"; then
+                  dpkg -i /tmp/amazon-ssm-agent.deb || apt-get update -y && apt-get install -y /tmp/amazon-ssm-agent.deb || true
+                  systemctl enable amazon-ssm-agent || true
+                  systemctl restart amazon-ssm-agent || systemctl start amazon-ssm-agent || true
+                  break
+                fi
+                sleep 10
+              done
+
+              # Install Docker (official repo) and AWS CLI v2
+              export DEBIAN_FRONTEND=noninteractive
+              apt-get update -y
+              apt-get install -y ca-certificates curl gnupg unzip
+              install -m 0755 -d /etc/apt/keyrings
+              curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+              chmod a+r /etc/apt/keyrings/docker.gpg
+              echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu noble stable" > /etc/apt/sources.list.d/docker.list
+              apt-get update -y
+              apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+              systemctl enable --now docker
+
+              # AWS CLI v2
+              tmpdir=$(mktemp -d) && cd "$tmpdir"
+              curl -fsSL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip
+              unzip -q awscliv2.zip
+              ./aws/install || true
+              /usr/local/bin/aws --version || true
               EOF
 
   tags = merge(local.base_tags, {

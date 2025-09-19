@@ -2,12 +2,14 @@
 - name: Install Docker on Ubuntu via official repo
   hosts: all
   become: true
+  gather_facts: false
   vars:
     docker_packages:
       - apt-transport-https
       - ca-certificates
       - curl
       - software-properties-common
+      - unzip
   tasks:
     - name: Update apt cache
       apt:
@@ -40,3 +42,24 @@
         enabled: yes
         state: started
 
+    - name: Download AWS CLI v2
+      get_url:
+        url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+        dest: /tmp/awscliv2.zip
+        mode: "0644"
+
+    - name: Unzip AWS CLI v2
+      unarchive:
+        src: /tmp/awscliv2.zip
+        dest: /tmp/
+        remote_src: true
+
+    - name: Install AWS CLI v2
+      shell: /tmp/aws/install || true
+      args:
+        executable: /bin/bash
+
+    - name: Verify AWS CLI
+      shell: aws --version
+      args:
+        executable: /bin/bash

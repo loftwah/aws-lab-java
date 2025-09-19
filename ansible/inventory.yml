@@ -1,7 +1,8 @@
 all:
   hosts:
     ec2_app_instance:
-      ansible_host: i-REPLACE_ME_AT_APPLY
+      ansible_host: i-081db86b9591e5f47
       ansible_connection: amazon.aws.aws_ssm
       ansible_aws_ssm_region: ap-southeast-2
-
+      ansible_aws_ssm_profile: devops-sandbox
+      ansible_python_interpreter: /usr/bin/python3
