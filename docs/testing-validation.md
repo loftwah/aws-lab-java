@@ -64,6 +64,58 @@ When CodePipeline/CodeBuild are introduced, they will mimic the local workflow:
 - Trigger Terraform plan/apply jobs per stack (initially `compute-ecs`, `compute-ec2`, `database`).
 - Record artifacts: smoke-test results, SBOMs, Terraform plans.
 
+## Operating EC2 with Ansible over SSM (no SSH)
+
+1. Control node setup (macOS)
+
+- `brew install ansible`
+- `ansible-galaxy install -r ansible/requirements.yml`
+- Install Session Manager Plugin (required):
+  - `brew install session-manager-plugin` (prompts for password), or:
+  - `curl -fsSL https://session-manager-downloads.s3.amazonaws.com/plugin/latest/mac_arm64/session-manager-plugin.pkg -o /tmp/session-manager-plugin.pkg`
+  - `sudo /usr/sbin/installer -pkg /tmp/session-manager-plugin.pkg -target /`
+- Verify: `session-manager-plugin --version`
+
+2. Inventory for SSM
+
+```yaml
+all:
+  hosts:
+    ec2_app_instance:
+      ansible_host: i-xxxxxxxxxxxxxxxxx
+      ansible_connection: amazon.aws.aws_ssm
+      ansible_aws_ssm_region: ap-southeast-2
+      ansible_aws_ssm_profile: devops-sandbox
+      ansible_python_interpreter: /usr/bin/python3
+```
+
+File: `ansible/inventory.yml`
+
+3. Run playbooks
+
+- Install Docker:
+
+```bash
+AWS_PROFILE=devops-sandbox ansible-playbook -i ansible/inventory.yml ansible/install_docker.yml -vvv
+```
+
+- Deploy container:
+
+```bash
+ACCOUNT_ID=$(AWS_PROFILE=devops-sandbox aws sts get-caller-identity --query Account --output text)
+ECR_REPO_URL="$ACCOUNT_ID.dkr.ecr.ap-southeast-2.amazonaws.com/aws-lab-java-demo"
+AWS_PROFILE=devops-sandbox ansible-playbook -i ansible/inventory.yml ansible/deploy_app.yml -e ecr_repo_url="$ECR_REPO_URL" -vvv
+```
+
+4. Troubleshooting
+
+- If you see "A worker was found in a dead state": finish installing the Session Manager Plugin and re-run from your Mac terminal (not inside an SSM shell).
+- Verify the instance is online in SSM:
+
+```bash
+AWS_PROFILE=devops-sandbox aws ssm describe-instance-information --region ap-southeast-2
+```
+
 ## Future enhancements
 
 - Add contract tests for `/healthz` and synthetic checks for CRUD endpoints.

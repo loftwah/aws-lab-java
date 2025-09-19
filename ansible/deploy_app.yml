@@ -1,0 +1,57 @@
+---
+- name: Deploy app container from ECR
+  hosts: all
+  become: true
+  gather_facts: false
+  collections:
+    - amazon.aws
+  vars:
+    aws_region: ap-southeast-2
+    ecr_repo_url: REPLACE_WITH_ECR_URL
+    container_name: aws-lab-java-demo
+    host_port: 8080
+    s3_bucket: aws-lab-java-development-widget-metadata
+    s3_prefix: widget-metadata/
+  tasks:
+    - name: Install CLI dependencies
+      apt:
+        name:
+          - unzip
+          - curl
+        state: present
+        update_cache: yes
+
+    - name: Login to ECR
+      shell: |
+        aws ecr get-login-password --region {{ aws_region }} | \
+          docker login --username AWS --password-stdin {{ ecr_repo_url | regex_replace(':.*$', '') }}
+      args:
+        executable: /bin/bash
+
+    - name: Pull image
+      shell: docker pull {{ ecr_repo_url }}:latest
+      args:
+        executable: /bin/bash
+
+    - name: Fetch DEMO_AUTH_TOKEN from SSM Parameter Store
+      set_fact:
+        demo_auth_token: "{{ lookup('amazon.aws.aws_ssm', '/app/aws-lab-java/development/DEMO_AUTH_TOKEN', region=aws_region) }}"
+
+    - name: Stop existing container if present
+      shell: docker rm -f {{ container_name }} || true
+      args:
+        executable: /bin/bash
+
+    - name: Run container
+      shell: >-
+        docker run -d --name {{ container_name }} --restart always
+        -p {{ host_port }}:8080
+        -e SPRING_PROFILES_ACTIVE=aws
+        -e DEPLOYMENT_TARGET=ec2
+        -e AWS_REGION={{ aws_region }}
+        -e AWS_S3_METADATA_BUCKET={{ s3_bucket }}
+        -e AWS_S3_METADATA_PREFIX={{ s3_prefix }}
+        -e DEMO_AUTH_TOKEN='{{ demo_auth_token }}'
+        {{ ecr_repo_url }}:latest
+      args:
+        executable: /bin/bash

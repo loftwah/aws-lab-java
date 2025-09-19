@@ -18,3 +18,15 @@ resource "aws_route53_record" "ecs_service" {
     evaluate_target_health = true
   }
 }
+
+resource "aws_route53_record" "ec2_service" {
+  zone_id = data.aws_route53_zone.primary.zone_id
+  name    = var.ec2_service_subdomain
+  type    = "A"
+
+  alias {
+    name                   = data.terraform_remote_state.ecs_alb.outputs.alb_dns_name
+    zone_id                = data.aws_lb.ecs.zone_id
+    evaluate_target_health = true
+  }
+}

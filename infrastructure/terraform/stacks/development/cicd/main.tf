@@ -8,6 +8,8 @@ locals {
   build_project_name  = "aws-lab-java-${var.environment}-image-build"
   ecr_repository_url  = data.terraform_remote_state.container_registry.outputs.ecr_repository_url
   ecr_repository_name = data.terraform_remote_state.container_registry.outputs.ecr_repository_name
+  ecs_cluster_arn     = data.terraform_remote_state.ecs_cluster.outputs.cluster_arn
+  ecs_service_name    = data.terraform_remote_state.ecs_demo.outputs.service_name
 }
 
 resource "aws_s3_bucket" "artifacts" {
@@ -304,7 +306,136 @@ resource "aws_codepipeline" "image_pipeline" {
     }
   }
 
+  dynamic "stage" {
+    for_each = var.manual_approval ? [1] : []
+    content {
+      name = "Approve"
+      action {
+        name            = "ManualApproval"
+        category        = "Approval"
+        owner           = "AWS"
+        provider        = "Manual"
+        version         = "1"
+        input_artifacts = ["BuildOutput"]
+      }
+    }
+  }
+
+  stage {
+    name = "Deploy_ECS"
+
+    action {
+      name            = "DeployECS"
+      category        = "Deploy"
+      owner           = "AWS"
+      provider        = "ECS"
+      version         = "1"
+      input_artifacts = ["BuildOutput"]
+
+      configuration = {
+        ClusterName = local.ecs_cluster_arn
+        ServiceName = local.ecs_service_name
+        FileName    = "imageDetail.json"
+      }
+    }
+  }
+
+  stage {
+    name = "Deploy_EC2"
+
+    action {
+      name            = "DeployEC2"
+      category        = "Invoke"
+      owner           = "AWS"
+      provider        = "Lambda"
+      version         = "1"
+      input_artifacts = ["BuildOutput"]
+
+      configuration = {
+        FunctionName = aws_lambda_function.ec2_deploy.name
+        UserParameters = jsonencode({
+          instanceId = var.ec2_instance_id
+          region     = var.aws_region
+        })
+      }
+    }
+  }
+
   tags = merge(local.base_tags, {
     Component = "codepipeline"
   })
+}
+
+data "archive_file" "lambda_zip" {
+  type        = "zip"
+  output_path = "${path.module}/.tmp/ec2_deploy.zip"
+
+  source {
+    content  = <<-PY
+import boto3, json, os
+
+def handler(event, context):
+    params = json.loads(event.get('UserParameters', '{}')) if isinstance(event.get('UserParameters'), str) else event.get('UserParameters', {})
+    instance_id = params.get('instanceId')
+    region = params.get('region', os.environ.get('AWS_REGION'))
+    ssm = boto3.client('ssm', region_name=region)
+    account_id = boto3.client('sts').get_caller_identity()['Account']
+    ecr = f"{account_id}.dkr.ecr.{region}.amazonaws.com/aws-lab-java-demo"
+    cmds = [
+        "set -e",
+        f"/usr/local/bin/aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {ecr}",
+        f"docker pull {ecr}:latest",
+        f"DEMO_AUTH_TOKEN=$(/usr/local/bin/aws ssm get-parameter --with-decryption --region {region} --name /app/aws-lab-java/development/DEMO_AUTH_TOKEN --query Parameter.Value --output text)",
+        f"SPRING_DATASOURCE_URL=$(/usr/local/bin/aws ssm get-parameter --region {region} --name /app/aws-lab-java/development/SPRING_DATASOURCE_URL --query Parameter.Value --output text)",
+        f"SPRING_DATASOURCE_USERNAME=$(/usr/local/bin/aws ssm get-parameter --region {region} --name /app/aws-lab-java/development/SPRING_DATASOURCE_USERNAME --query Parameter.Value --output text)",
+        f"SPRING_DATASOURCE_PASSWORD=$(/usr/local/bin/aws ssm get-parameter --with-decryption --region {region} --name /app/aws-lab-java/development/SPRING_DATASOURCE_PASSWORD --query Parameter.Value --output text)",
+        "docker rm -f aws-lab-java-demo || true",
+        "docker run -d --name aws-lab-java-demo --restart always -p 8080:8080 "
+        "-e SPRING_PROFILES_ACTIVE=aws -e DEPLOYMENT_TARGET=ec2 "
+        f"-e AWS_REGION={region} -e AWS_S3_METADATA_BUCKET=aws-lab-java-development-widget-metadata -e AWS_S3_METADATA_PREFIX=widget-metadata/ "
+        "-e DEMO_AUTH_TOKEN=$DEMO_AUTH_TOKEN -e SPRING_DATASOURCE_URL=\"$SPRING_DATASOURCE_URL\" -e SPRING_DATASOURCE_USERNAME=\"$SPRING_DATASOURCE_USERNAME\" -e SPRING_DATASOURCE_PASSWORD=\"$SPRING_DATASOURCE_PASSWORD\" "
+        f"{ecr}:latest"
+    ]
+    resp = ssm.send_command(
+        InstanceIds=[instance_id],
+        DocumentName='AWS-RunShellScript',
+        Parameters={'commands': cmds}
+    )
+    return {'commandId': resp['Command']['CommandId']}
+PY
+    filename = "index.py"
+  }
+}
+
+resource "aws_iam_role" "lambda" {
+  name = "aws-lab-java-${var.environment}-ec2-deploy-lambda"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Effect    = "Allow",
+      Action    = "sts:AssumeRole",
+      Principal = { Service = "lambda.amazonaws.com" }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "lambda" {
+  role = aws_iam_role.lambda.id
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      { Effect = "Allow", Action = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"], Resource = "*" },
+      { Effect = "Allow", Action = ["ssm:SendCommand"], Resource = "*" },
+      { Effect = "Allow", Action = ["ecr:GetAuthorizationToken"], Resource = "*" },
+      { Effect = "Allow", Action = ["sts:GetCallerIdentity"], Resource = "*" }
+    ]
+  })
+}
+
+resource "aws_lambda_function" "ec2_deploy" {
+  function_name = "aws-lab-java-${var.environment}-ec2-deploy"
+  role          = aws_iam_role.lambda.arn
+  runtime       = "python3.12"
+  handler       = "index.handler"
+  filename      = data.archive_file.lambda_zip.output_path
 }

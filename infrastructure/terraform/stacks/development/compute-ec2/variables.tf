@@ -21,3 +21,9 @@ variable "additional_tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "ec2_service_domain_name" {
+  description = "Public DNS name served for the EC2-based app via ALB"
+  type        = string
+  default     = "java-demo-ec2.aws.deanlofts.xyz"
+}

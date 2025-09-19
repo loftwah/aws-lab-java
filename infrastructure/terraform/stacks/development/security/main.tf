@@ -227,6 +227,31 @@ data "aws_iam_policy_document" "ec2_instance" {
       "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:${local.secrets_prefix}*"
     ]
   }
+
+  # Allow EC2 instance to pull images from ECR
+  statement {
+    sid    = "PullFromECR"
+    effect = "Allow"
+    actions = [
+      "ecr:GetAuthorizationToken",
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:GetDownloadUrlForLayer",
+      "ecr:BatchGetImage"
+    ]
+    resources = [
+      data.terraform_remote_state.container_registry.outputs.ecr_repository_arn,
+    ]
+  }
+
+  # Allow GetAuthorizationToken is a global action that must be resource "*"
+  statement {
+    sid    = "ECRAuthTokenGlobal"
+    effect = "Allow"
+    actions = [
+      "ecr:GetAuthorizationToken"
+    ]
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_role" "ec2_service" {

@@ -1,0 +1,15 @@
+{
+  "commands": [
+    "set -e",
+    "ACCOUNT_ID=$(/usr/local/bin/aws sts get-caller-identity --query Account --output text)",
+    "ECR=${ACCOUNT_ID}.dkr.ecr.ap-southeast-2.amazonaws.com/aws-lab-java-demo",
+    "/usr/local/bin/aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin ${ECR}",
+    "docker pull ${ECR}:latest",
+    "SPRING_DATASOURCE_URL=$(/usr/local/bin/aws ssm get-parameter --region ap-southeast-2 --name /app/aws-lab-java/development/SPRING_DATASOURCE_URL --query Parameter.Value --output text)",
+    "SPRING_DATASOURCE_USERNAME=$(/usr/local/bin/aws ssm get-parameter --region ap-southeast-2 --name /app/aws-lab-java/development/SPRING_DATASOURCE_USERNAME --query Parameter.Value --output text)",
+    "SPRING_DATASOURCE_PASSWORD=$(/usr/local/bin/aws ssm get-parameter --with-decryption --region ap-southeast-2 --name /app/aws-lab-java/development/SPRING_DATASOURCE_PASSWORD --query Parameter.Value --output text)",
+    "DEMO_AUTH_TOKEN=$(/usr/local/bin/aws ssm get-parameter --with-decryption --region ap-southeast-2 --name /app/aws-lab-java/development/DEMO_AUTH_TOKEN --query Parameter.Value --output text)",
+    "docker rm -f aws-lab-java-demo || true",
+    "docker run -d --name aws-lab-java-demo --restart always -p 8080:8080 -e SPRING_PROFILES_ACTIVE=aws -e DEPLOYMENT_TARGET=ec2 -e AWS_REGION=ap-southeast-2 -e AWS_S3_METADATA_BUCKET=aws-lab-java-development-widget-metadata -e AWS_S3_METADATA_PREFIX=widget-metadata/ -e DEMO_AUTH_TOKEN=${DEMO_AUTH_TOKEN} -e SPRING_DATASOURCE_URL=\"${SPRING_DATASOURCE_URL}\" -e SPRING_DATASOURCE_USERNAME=\"${SPRING_DATASOURCE_USERNAME}\" -e SPRING_DATASOURCE_PASSWORD=\"${SPRING_DATASOURCE_PASSWORD}\" ${ECR}:latest"
+  ]
+}

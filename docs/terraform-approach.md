@@ -58,6 +58,15 @@
 - Systemd units manage the container lifecycle and reload environment variables sourced from Parameter Store/Secrets Manager.
 - Build outputs (artefacts, inventories) live alongside the repo, keeping automation transparent and versioned.
 
+### Ubuntu AMI selection
+
+- Prefer Terraform data sources to resolve Canonical Ubuntu AMIs at apply time (owner `099720109477`, name filter like `ubuntu/images/hvm-ssd/ubuntu-noble-24.04-amd64-server-*`).
+- Reference: Ubuntu EC2 AMI Locator for manual verification and region-specific AMI IDs: [Ubuntu EC2 AMI Locator](https://cloud-images.ubuntu.com/locator/ec2/).
+- Current examples for ap-southeast-2 (as of latest locator data):
+  - 24.04 LTS Noble Numbat (amd64, hvm:ebs-ssd-gp3): `ami-01486609feeecb32f`
+  - 24.04 LTS Noble Numbat (arm64, hvm:ebs-ssd-gp3): `ami-0b7b74c71927ef7e9`
+  - Use these only as a reference; the Terraform data source remains the source of truth.
+
 ## Ingress, routing and DNS
 
 - Separate ALBs front the ECS and EC2 services (`java-demo-ecs.aws.deanlofts.xyz`, `java-demo-ec2.aws.deanlofts.xyz`) with HTTPS termination at the load balancer using ACM certificates.

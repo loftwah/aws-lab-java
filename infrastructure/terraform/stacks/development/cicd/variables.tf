@@ -39,3 +39,15 @@ variable "branch" {
   type        = string
   default     = "main"
 }
+
+variable "manual_approval" {
+  description = "Insert a manual approval between build and deploy"
+  type        = bool
+  default     = false
+}
+
+variable "ec2_instance_id" {
+  description = "EC2 instance ID for EC2 deploy stage"
+  type        = string
+  default     = "i-081db86b9591e5f47"
+}
