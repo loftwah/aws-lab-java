@@ -75,7 +75,13 @@ fi
 
 docker buildx use "$BUILDER_NAME"
 
-build_cmd=(docker buildx build --platform "$PLATFORM" --tag "$IMAGE_NAME:$latest_tag" --tag "$IMAGE_NAME:$sha_tag" "$CONTEXT_DIR")
+build_cmd=(
+  docker buildx build
+  --platform "$PLATFORM"
+  --tag "$IMAGE_NAME:$latest_tag"
+  --tag "$IMAGE_NAME:$sha_tag"
+  "$CONTEXT_DIR"
+)
 
 if [[ "$PUSH" == "true" ]]; then
   build_cmd+=(--push)

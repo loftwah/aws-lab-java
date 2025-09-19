@@ -15,6 +15,7 @@ services:
       context: ./application
     image: aws-lab-java/demo-app:local
     environment:
+      SPRING_PROFILES_ACTIVE: local
       DEPLOYMENT_TARGET: compose
       DEMO_AUTH_TOKEN: local-token
       FEATURE_S3_METADATA: "false"

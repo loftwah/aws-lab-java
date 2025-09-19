@@ -57,6 +57,17 @@ All configuration ultimately binds through Spring Boot configuration properties.
 2. **ECS task definitions** – use task definition environment blocks or reference Secrets Manager/SSM parameters.
 3. **EC2 systemd unit** – write an `.env` file sourced by the unit, populated via SSM/Secrets Manager during provisioning.
 
+### AWS environment defaults (development)
+
+The Terraform stacks in this repository already describe the shared development deployment. When running the application with `SPRING_PROFILES_ACTIVE=aws` we now default to the following runtime inputs, matching the infrastructure definitions:
+
+- **Region/profile**: `ap-southeast-2` using the `devops-sandbox` CLI/SDK profile (`docs/architecture.md`).
+- **Auth token secret**: `aws-lab-java/development/app-auth-token` in Secrets Manager (with `/app/aws-lab-java/development/DEMO_AUTH_TOKEN` as the SSM fallback) – the `security` stack seeds both with a randomly generated value during `terraform apply`.
+- **S3 widget metadata bucket**: `aws-lab-java-development-widget-metadata` with key prefix `widget-metadata/` (`infrastructure/terraform/stacks/development/storage`).
+- **Permitted browser origins**: `https://java-demo-ecs.aws.deanlofts.xyz` and `https://java-demo-ec2.aws.deanlofts.xyz`.
+
+Terraform seeds the auth-token secret/parameter automatically; rotate or override the values if you need a specific token. The storage and IAM stacks already provision the bucket and permissions consumed by the compute layer.
+
 ## Health and observability
 
 - `/healthz` now performs live checks:

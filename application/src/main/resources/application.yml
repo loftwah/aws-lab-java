@@ -1,15 +1,14 @@
 app:
   name: "AWS Lab Java Demo"
   owner: "Dean Lofts"
-  deployment-target: ${DEPLOYMENT_TARGET:local}
   auth-token: ${DEMO_AUTH_TOKEN:demo-token}
-  feature:
-    s3-metadata: ${FEATURE_S3_METADATA:false}
 
 server:
   port: ${SERVER_PORT:8080}
 
 spring:
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
   application:
     name: aws-lab-java-demo
   main:

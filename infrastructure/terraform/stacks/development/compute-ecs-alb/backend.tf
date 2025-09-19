@@ -10,7 +10,7 @@ terraform {
 
   backend "s3" {
     bucket       = "aws-lab-java-terraform-state"
-    key          = "development/compute-ecs.tfstate"
+    key          = "development/compute-ecs-alb.tfstate"
     region       = "ap-southeast-2"
     profile      = "devops-sandbox"
     encrypt      = true

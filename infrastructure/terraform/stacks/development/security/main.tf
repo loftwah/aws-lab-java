@@ -3,9 +3,45 @@ data "aws_caller_identity" "current" {}
 locals {
   account_id                = data.aws_caller_identity.current.account_id
   secrets_prefix            = "aws-lab-java/${var.environment}"
-  parameter_prefix          = "/aws-lab-java/${var.environment}/"
+  parameter_prefix          = "/app/aws-lab-java/${var.environment}/"
   widget_metadata_bucket    = data.terraform_remote_state.storage.outputs.widget_metadata_bucket_arn
   widget_metadata_bucket_id = data.terraform_remote_state.storage.outputs.widget_metadata_bucket_name
+  auth_token_secret_name    = "${local.secrets_prefix}/app-auth-token"
+  auth_token_parameter_name = "${local.parameter_prefix}DEMO_AUTH_TOKEN"
+}
+
+resource "random_password" "auth_token" {
+  length           = 32
+  min_upper        = 1
+  min_lower        = 1
+  min_numeric      = 1
+  min_special      = 1
+  override_special = "!#$%&*+-=?@^_"
+}
+
+resource "aws_secretsmanager_secret" "app_auth_token" {
+  name        = local.auth_token_secret_name
+  description = "Demo application auth token"
+
+  tags = merge(local.base_tags, {
+    Component = "app-auth-token"
+  })
+}
+
+resource "aws_secretsmanager_secret_version" "app_auth_token" {
+  secret_id     = aws_secretsmanager_secret.app_auth_token.id
+  secret_string = random_password.auth_token.result
+}
+
+resource "aws_ssm_parameter" "app_auth_token" {
+  name        = local.auth_token_parameter_name
+  type        = "SecureString"
+  value       = random_password.auth_token.result
+  description = "Demo application auth token"
+
+  tags = merge(local.base_tags, {
+    Component = "app-auth-token"
+  })
 }
 
 data "aws_iam_policy_document" "ecs_task_execution_assume" {
@@ -203,4 +239,19 @@ output "ec2_instance_profile_name" {
 output "ec2_instance_role_arn" {
   description = "IAM role ARN assumed by EC2 workloads"
   value       = aws_iam_role.ec2_service.arn
+}
+
+output "app_auth_token_secret_arn" {
+  description = "Secrets Manager ARN holding the demo auth token"
+  value       = aws_secretsmanager_secret.app_auth_token.arn
+}
+
+output "app_auth_token_secret_name" {
+  description = "Secrets Manager name for the demo auth token"
+  value       = aws_secretsmanager_secret.app_auth_token.name
+}
+
+output "app_auth_token_parameter_name" {
+  description = "SSM parameter name containing the demo auth token"
+  value       = aws_ssm_parameter.app_auth_token.name
 }

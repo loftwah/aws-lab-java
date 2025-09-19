@@ -1,6 +1,6 @@
 # Development stacks
 
-Each subdirectory is an independently runnable Terraform stack with its own backend key in the shared S3 bucket. Apply stacks in a sensible order (e.g. `core-networking` before `compute-ecs`, `database`, `cicd`).
+Each subdirectory is an independently runnable Terraform stack with its own backend key in the shared S3 bucket. Apply stacks in a sensible order (e.g. `core-networking` → `compute-ecs-cluster` → `compute-ecs-alb` → service stacks → `database`, `cicd`).
 
 ```
 cd infrastructure/terraform/stacks/development/core-networking
@@ -15,7 +15,9 @@ Current stacks:
 - `container-registry` – ECR repositories and related policies.
 - `security` – IAM roles, instance profiles, secrets, and shared policies that span compute stacks.
 - `storage` – Application data stores such as the widget-metadata S3 bucket and related policies.
-- `compute-ecs` – ECS cluster/services (depends on networking, container registry, security).
+- `compute-ecs-cluster` – Shared ECS cluster and capacity providers (depends on networking).
+- `compute-ecs-alb` – Public application load balancer and base listener for ECS services (depends on networking).
+- `compute-ecs-demo-app` – Demo application ECS service and task definition (depends on networking, security, storage, database, container registry, and the ECS cluster/ALB stacks).
 - `compute-ec2` – EC2 launch templates, autoscaling, and Ansible bootstrap (depends on networking, security, container registry).
 - `database` – RDS/Secrets stack (depends on networking, security).
 - `cicd` – CodePipeline/CodeBuild (depends on networking, container registry, security).
