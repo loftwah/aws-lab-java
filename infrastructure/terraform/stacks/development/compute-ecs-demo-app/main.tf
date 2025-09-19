@@ -124,6 +124,13 @@ resource "aws_ecs_task_definition" "app" {
       ]
       environment = local.container_environment
       secrets     = local.container_secrets
+      healthCheck = {
+        command     = ["CMD-SHELL", "curl -f http://localhost:${local.container_port}/actuator/health || exit 1"]
+        interval    = 30
+        timeout     = 5
+        retries     = 3
+        startPeriod = 60
+      }
       logConfiguration = {
         logDriver = "awslogs"
         options = {
