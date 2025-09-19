@@ -11,12 +11,14 @@ terraform apply
 
 Current stacks:
 
-- `core-networking` – data sources and shared networking outputs.
-- `compute-ecs` – ECR repository (ECS service wiring later).
-- `compute-ec2` – placeholder for EC2/Ansible resources.
-- `database` – placeholder for RDS/Secrets.
-- `cicd` – placeholder for CodePipeline/CodeBuild artefacts.
-- `observability` – placeholder for logs/dashboards/alarms.
+- `core-networking` – data sources plus the shared VPC, subnet catalogues, security groups (to be added), and networking outputs for downstream stacks.
+- `container-registry` – ECR repositories and related policies.
+- `security` – **(to be added)** IAM roles, instance profiles, and shared policies that span compute stacks.
+- `compute-ecs` – ECS cluster/services (depends on networking, container registry, security).
+- `compute-ec2` – EC2 launch templates, autoscaling, and Ansible bootstrap (depends on networking, security, container registry).
+- `database` – RDS/Secrets stack (depends on networking, security).
+- `cicd` – CodePipeline/CodeBuild (depends on networking, container registry, security).
+- `observability` – Logs, dashboards, alarms.
 
 Add or expand stacks by copying the provider/variable boilerplate and pointing the backend key to `development/<stack>.tfstate`.
 

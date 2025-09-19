@@ -1,0 +1,30 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo "Installing dependencies"
+      - aws --version
+      - docker --version
+  pre_build:
+    commands:
+      - echo "Logging in to Amazon ECR"
+      - ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+      - aws ecr get-login-password --region "$AWS_DEFAULT_REGION" | docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com"
+      - COMMIT_HASH=$(echo "$CODEBUILD_RESOLVED_SOURCE_VERSION" | cut -c 1-7)
+      - IMAGE_TAG=${COMMIT_HASH:-latest}
+      - export IMAGE_URI="$IMAGE_REPO_URI:$IMAGE_TAG"
+      - echo "Using image URI $IMAGE_URI"
+  build:
+    commands:
+      - echo "Building Docker image"
+      - docker build --platform linux/amd64 -t "$IMAGE_URI" -t "$IMAGE_REPO_URI:latest" application
+  post_build:
+    commands:
+      - echo "Pushing Docker images"
+      - docker push "$IMAGE_URI"
+      - docker push "$IMAGE_REPO_URI:latest"
+      - printf '{"ImageURI":"%s"}' "$IMAGE_URI" > imageDetail.json
+artifacts:
+  files:
+    - imageDetail.json

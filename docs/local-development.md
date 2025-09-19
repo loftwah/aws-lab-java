@@ -61,10 +61,13 @@ gradle --version
 
 ## Running the demo application locally
 
-1. Build the container image (uses BuildKit/buildx under the hood). This catches compile errors before Compose rebuilds the image:
+1. Build the container image (uses BuildKit/buildx under the hood). The script now discovers the target registry automatically by reading the Terraform outputs from `container-registry`, falls back to the active AWS CLI identity if needed, logs in with the AWS CLI, builds a `linux/amd64` image, and pushes both `latest` and `sha-<commit>` tags:
    ```bash
    ./scripts/build-demo.sh
    ```
+   - Requires the `devops-sandbox` AWS profile to be configured locally. The script pins the profile and region (`ap-southeast-2`) internally and runs `aws ecr get-login-password` automatically; set `AUTO_LOGIN=false` if you want to log in yourself.
+   - Prevent the push with `PUSH=false`, or override the detected registry via `IMAGE_NAME=<registry>/<repo>` if you really need to.
+   - Change the build architecture with `PLATFORM=<os/arch>` (defaults to `linux/amd64`).
 2. (Optional) Run the integration test suite locally:
    ```bash
    (cd application && gradle test)
@@ -82,6 +85,16 @@ gradle --version
    The script waits for `/healthz`, performs CRUD operations using the `local-token`, and prints progress to the terminal.
 
 Stop the stack with `docker compose down`. Data persists in the `postgres-data` volume between runs.
+
+## Building and pushing from Apple Silicon
+
+Apple Silicon hosts cross-build for `linux/amd64` using `docker buildx`. The `scripts/build-demo.sh` script provisions the builder automatically, so the standard invocation already targets the x86_64 runtime used by ECS/EC2. To generate an arm64 image for local testing without pushing:
+
+```bash
+PLATFORM=linux/arm64 PUSH=false ./scripts/build-demo.sh
+```
+
+Tagging rules remain the same; only the container architecture changes.
 
 ## Working with Terraform
 

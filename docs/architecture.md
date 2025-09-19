@@ -67,10 +67,11 @@
 
 ## CI/CD pipeline
 
-- CodePipeline orchestrating stages: Source (CodeCommit/GitHub), Build (CodeBuild), Test, Image Push (ECR), Deploy (ECS/EC2 targets).
+- **GitHub Actions (repository CI):** `.github/workflows/ci.yml` stays focused on pull-request and `main` branch checks plus publishing to GHCR for local/dev use. It never assumes AWS roles for the lab work and must remain untouched when iterating on the AWS pipeline story.
+- **AWS CodePipeline (lab automation):** Provisioned via `infrastructure/terraform/stacks/<env>/cicd`. The pipeline pulls source through the pre-authorised CodeStar connection, runs the `aws-lab-java-<env>-image-build` CodeBuild project, executes `buildspecs/build-image.yml`, and pushes to the `aws-lab-java-demo` ECR repository (provisioned by the `container-registry` stack) used by ECS/EC2 workloads.
 - CodeBuild assembles the Docker image, runs tests, and tags outputs with both the Git commit SHA (`sha-<short>`) and `latest`; Terraform provisions an immutable ECR repository that enforces this policy.
-- Pipelines use OIDC/IAM Roles for Service Accounts (no static keys) with dedicated Terraform-managed roles granting least-privilege pushes, deploys, and Terraform plan/apply.
-- Unit tests, static analysis, dependency scans, and container scans (e.g. Trivy) run inside CodeBuild; SBOMs and reports shipped as artefacts.
+- Pipelines use IAM service roles with least-privilege permissions (no static keys). CodePipeline can start CodeBuild and access the artifact bucket; CodeBuild can write logs, read/write artefacts, and push to ECR.
+- Unit tests, static analysis, dependency scans, and container scans (e.g. Trivy) run inside CodeBuild; SBOMs and reports ship as artefacts.
 - Promotion via manual approval to production-like env; same artefact promoted through stages using environment-specific Terraform apply jobs.
 
 ## Logging, metrics and observability

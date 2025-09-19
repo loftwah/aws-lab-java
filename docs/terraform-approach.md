@@ -10,7 +10,7 @@
   - `variables.tf` / `locals.tf` – stack-scoped inputs and tagging defaults
 - Bootstrap the shared state bucket via `infrastructure/terraform/state-bootstrap` before touching other stacks. This directory keeps its own local state because it only manages the remote backend (S3 bucket).
 - State objects live in S3 (`aws-lab-java-terraform-state`) with versioning/encryption enabled; native S3 locking (`use_lockfile = true`) is enabled instead of DynamoDB.
-- Each environment is partitioned into stacks (e.g. `core-networking`, `database`, `compute-ecs`) so you can plan/apply them independently without dragging the entire environment.
+- Each environment is partitioned into stacks (e.g. `core-networking`, `container-registry`, `compute-ecs`, `cicd`) so you can plan/apply them independently without dragging the entire environment. Shared prerequisites such as ECR live in their own stack so compute and pipeline layers can depend on them via remote state.
 - Downstream stacks pull networking outputs via `terraform_remote_state` pointing at `development/core-networking.tfstate`.
 
 ## Module layout
@@ -38,9 +38,10 @@
 
 ## Pipeline integration
 
+- **Separation of duties:** GitHub Actions (see `.github/workflows/ci.yml`) is reserved for repository health checks and GHCR publishing only. It must never assume AWS roles for lab resources; all AWS-side automation lives in CodePipeline/CodeBuild.
 - CodePipeline orchestrates Source → Build → Test → Scan → Deploy stages for both ECS and EC2 variants.
 - Source stage consumes an existing CodeStar Connection (ARN provided via `var.codestar_connection_arn`) so Git pushes to `main` automatically trigger the pipeline.
-- CodeBuild builds Docker images, runs unit/integration tests, and pushes to ECR while assuming an IAM role via OIDC; buildspec templates enforce tagging conventions.
+- CodeBuild builds Docker images, runs unit/integration tests, and pushes to ECR using the Terraform-managed IAM service role; `buildspecs/build-image.yml` enforces tagging conventions.
 - Deployment stages trigger Terraform or CD actions with least-privilege IAM roles (`iam` module issues roles for CodePipeline, CodeBuild, and cross-account promotions if needed).
 - Pipeline artefacts include Terraform plans, SBOMs, and promotion approvals for SOC2 evidence.
 

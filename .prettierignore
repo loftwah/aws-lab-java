@@ -1,6 +1,9 @@
 # Terraform working directories and state
 .terraform/
-**/.terraform/
+**/.terraform
+**/.terraform/**
+infrastructure/terraform/stacks/**/.terraform/**
+.terraform.lock.hcl
 *.tfstate
 *.tfstate.*
 terraform.tfstate.d/
