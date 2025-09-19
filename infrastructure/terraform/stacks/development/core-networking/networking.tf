@@ -231,4 +231,19 @@ output "private_subnets" {
   }
 }
 
+output "interface_endpoint_ids" {
+  description = "Interface endpoint identifiers keyed by service name"
+  value       = var.interface_endpoint_ids
+}
+
+output "endpoint_security_group_id" {
+  description = "Security group attached to interface VPC endpoints"
+  value       = var.endpoint_security_group_id
+}
+
+output "s3_gateway_endpoint_id" {
+  description = "Identifier for the S3 gateway endpoint in the shared VPC"
+  value       = var.s3_gateway_endpoint_id
+}
+
 # Module declarations for shared security groups, RDS, ECS, EC2, etc. will be added per lab.
