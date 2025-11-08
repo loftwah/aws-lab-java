@@ -4,7 +4,10 @@ data "aws_route53_zone" "primary" {
 }
 
 resource "aws_acm_certificate" "ecs" {
-  domain_name       = var.ecs_service_domain_name
+  domain_name = var.ecs_service_domain_name
+  subject_alternative_names = [
+    "java-demo-ec2.${var.hosted_zone_name}"
+  ]
   validation_method = "DNS"
 
   lifecycle {
